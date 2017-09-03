@@ -1,0 +1,52 @@
++var output = require('./output');
+ +var gitLayer = require('./gitLayer');
+ +var gitWorksLayer = require('./gitWorksLayer');
+ +var tof = require('./trueORFalse');
+ +var utils = require('./utils');
+ +
+ +exports.main = function(args){
+ +    if(args.length==0){
+ +        tof.isCurrentUserAMember(function(boolVal){
+ +            if(boolVal)
+ +                output.warning("you are already a member");
+ +            else
+ +                processNewMember();
+ +        });
+ +    }
+ +    else{
+ +        output.usage();
+ +        return;
+ +    }
+ +}
+ +
+ +function processNewMember(){
+ +    tof.isGitUserConfigInfoValid(function(boolVal){
+ +        if(boolVal){
+ +            gitLayer.getUserConfigInfo(function(userinfo){
+ +                gitWorksLayer.addMember(userinfo, function(){});
+ +            });
+ +        }
+ +        else
+ +            processNewMemberAskForDetails();
+ +    });
+ +}
+ +
+ +function processNewMemberAskForDetails(){
+ +    userinfo = {}
+ +    utils.askUserRequired("Enter Full Name", function(answer){
+ +        userinfo['username'] = answer;
+ +        utils.askUserRequired("Enter Email Address", function(answer){
+ +            userinfo['email'] = answer;
+ +            gitLayer.setUserConfigInfo(userinfo);
+ +            tof.isUserAMember(userinfo, function(boolVal){
+ +                if(boolVal){
+ +                    output.warning("you are already a member");
+ +                }
+ +                else{
+ +                    gitWorksLayer.addMember(userinfo, function(){});
+ +                }
+ +            });
+ +          });
+ +    });
+ +}
+View
